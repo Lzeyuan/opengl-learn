@@ -1,6 +1,7 @@
 # clangd
 .cache
 .vscode
+compile_commands.json
 
 # Xmake cache
 .xmake/

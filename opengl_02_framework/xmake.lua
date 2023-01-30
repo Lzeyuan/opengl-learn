@@ -1,11 +1,12 @@
 add_rules("mode.debug", "mode.release")
 
-add_requires("glfw")
+set_version("1.0.0")
 set_languages("c11", "c++14")
 
-target("introduce")
+add_requires("glfw")
+target("framework")
     set_kind("binary")
-    set_basename("introduce_$(mode)_$(arch)")
+    set_basename("framework_$(mode)_$(arch)")
     add_files("src/*.cpp", "src/*.c")
     add_includedirs("include")
     add_packages("glfw")
