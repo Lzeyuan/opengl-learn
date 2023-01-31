@@ -1,7 +1,7 @@
 add_rules("mode.debug", "mode.release")
 
 set_version("1.0.0")
-set_languages("c11", "c++14")
+set_languages("c11", "c++17")
 
 add_requires("glfw")
 target("framework")

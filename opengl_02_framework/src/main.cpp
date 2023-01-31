@@ -1,16 +1,13 @@
-#include "framework.hpp"
 #include <iostream>
+#include <memory>
+#include <stdio.h>
+#include <utility>
+
+#include "hello_component.hpp"
+#include "framework.hpp"
 
 
 using namespace std;
-
-// process all input: query GLFW whether relevant keys are pressed/released this
-// frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window) noexcept {
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
-}
 
 // glfw: whenever the window size changed (by OS or user resize) this callback
 // function executes
@@ -22,12 +19,19 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) noexce
 }
 
 int main(int argc, char **argv) {
-  auto t = leza::FrameworkBuild()
-               .SetProcessInputCallBack(processInput)
+  auto framework = leza::FrameworkBuild()
                .SetFramebufferSizeCallback(framebuffer_size_callback)
                .Build();
-  t->Open();
-  while (0 == t->Update())
+
+  #pragma region 手动装配GameObject和component
+  leza::GameObject gameObject {};
+  std::unique_ptr<leza::ComponentAbstract> helloComponent{new leza::HelloComponent()};
+  gameObject.AddComponent(std::move(helloComponent));
+  framework->AddGameObject(std::move(gameObject));
+  #pragma endregion
+
+  framework->Open();
+  while (0 == framework->Update())
     ;
   return 0;
 }

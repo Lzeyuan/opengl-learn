@@ -1,15 +1,42 @@
 #include "framework.hpp"
 #include <memory>
 #include <stdio.h>
+#include <utility>
 
 namespace leza {
 
-Framework::Framework(int width, int height, ProcessInput processInput,
-                     GLFWframebuffersizefun framebuffer_size_callback) noexcept
-    : width(width), height(height), processInput(processInput),
-      framebuffer_size_callback(framebuffer_size_callback) {}
+GameObject::GameObject() noexcept {
+  this->components = std::make_unique<Components>();
+}
 
-int Framework::Open() {
+void GameObject::AddComponent(std::unique_ptr<ComponentAbstract>&& component) noexcept {
+  components->emplace_back(std::move(component));
+}
+void GameObject::Start(GLFWwindow *window) noexcept {
+  // for (const auto& component : components) {
+  //   component->Start(window);
+  // }
+}
+void GameObject::Update(GLFWwindow *window) noexcept {
+  for (const auto& component : *components) {
+    component->Update(window);
+  }
+}
+void GameObject::OnDestroy(GLFWwindow *window) noexcept {
+  // for (const auto& component : components) {
+  //   component->OnDestroy(window);
+  // }
+}
+
+
+Framework::Framework(int width, int height,
+                     GLFWframebuffersizefun framebuffer_size_callback) noexcept
+    : width(width), height(height),
+      framebuffer_size_callback(framebuffer_size_callback) {
+  
+}
+
+int Framework::Open() noexcept {
   // glfw: initialize and configure
   // ------------------------------
   glfwInit();
@@ -31,7 +58,7 @@ int Framework::Open() {
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+  
   // glad: load all OpenGL function pointers
   // ---------------------------------------
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -42,18 +69,14 @@ int Framework::Open() {
   return 0;
 }
 
-int Framework::Update() {
+int Framework::Update() noexcept {
 
   if (glfwWindowShouldClose(window))
     return -1;
-  // input
-  // -----
-  processInput(window);
 
-  // render
-  // ------
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  for (auto& gameObject : gameObjects) {
+    gameObject.Update(window);
+  }
 
   // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved
   // etc.)
@@ -63,9 +86,13 @@ int Framework::Update() {
   return 0;
 }
 
+void Framework::AddGameObject(GameObject&& gameObject) noexcept {
+  gameObjects.emplace_back(std::move(gameObject));
+}
+
 std::unique_ptr<Framework> FrameworkBuild::Build() noexcept {
-  std::unique_ptr<Framework> ret = std::make_unique<Framework>(
-      width, height, process_input_callback, framebuffer_size_callback);
+  std::unique_ptr<Framework> ret =
+      std::make_unique<Framework>(width, height, framebuffer_size_callback);
   return ret;
 }
 
@@ -77,11 +104,7 @@ FrameworkBuild FrameworkBuild::SetHeight(int height) noexcept {
   this->height = height;
   return *this;
 }
-FrameworkBuild FrameworkBuild::SetProcessInputCallBack(
-    ProcessInput const process_input_callback) noexcept {
-  this->process_input_callback = process_input_callback;
-  return *this;
-}
+
 FrameworkBuild FrameworkBuild::SetFramebufferSizeCallback(
     GLFWframebuffersizefun const framebuffer_size_callback) noexcept {
   this->framebuffer_size_callback = framebuffer_size_callback;
